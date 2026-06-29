@@ -125,5 +125,5 @@ if st.button("Analyze Resume"):
         st.warning("Average match. Tailor your resume to the job description.")
     else:
         st.error("Low match. Consider revising your resume before applying.")
-```
+
 
