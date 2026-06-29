@@ -1,88 +1,88 @@
 import re
-import pdfplumber
+import fitz  # PyMuPDF
 
-from sklearn.feature_extraction.text import (
-    ENGLISH_STOP_WORDS,
-    TfidfVectorizer
-)
+import streamlit as st
+
+from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
+# ----------------------------
+# Load AI Model (Only Once)
+# ----------------------------
 
-# -------------------------------
-# Extract text from PDF
-# -------------------------------
+@st.cache_resource
+def load_model():
+    return SentenceTransformer("all-MiniLM-L6-v2")
 
-def extract_pdf_text(pdf_file):
+
+model = load_model()
+
+
+# ----------------------------
+# Extract Text From PDF
+# ----------------------------
+
+def extract_pdf_text(uploaded_file):
 
     text = ""
 
-    with pdfplumber.open(pdf_file) as pdf:
+    pdf = fitz.open(stream=uploaded_file.read(), filetype="pdf")
 
-        for page in pdf.pages:
-
-            page_text = page.extract_text()
-
-            if page_text:
-                text += page_text + "\n"
+    for page in pdf:
+        text += page.get_text()
 
     return text
 
 
-# -------------------------------
+# ----------------------------
 # Clean Text
-# -------------------------------
+# ----------------------------
 
 def clean_text(text):
 
     text = text.lower()
 
-    text = re.sub(r'[^a-zA-Z0-9\s]', ' ', text)
+    text = re.sub(r"http\S+", " ", text)
 
-    words = text.split()
+    text = re.sub(r"[^a-zA-Z0-9\s]", " ", text)
 
-    words = [
-        word
-        for word in words
-        if word not in ENGLISH_STOP_WORDS
-    ]
+    text = re.sub(r"\s+", " ", text)
 
-    return " ".join(words)
+    return text.strip()
 
 
-# -------------------------------
-# TF-IDF Similarity
-# -------------------------------
+# ----------------------------
+# Semantic Similarity
+# ----------------------------
 
 def calculate_match_score(resume_text, jd_text):
 
-    vectorizer = TfidfVectorizer()
+    resume_embedding = model.encode(
+        resume_text,
+        convert_to_tensor=False
+    )
 
-    vectors = vectorizer.fit_transform(
-        [resume_text, jd_text]
+    jd_embedding = model.encode(
+        jd_text,
+        convert_to_tensor=False
     )
 
     similarity = cosine_similarity(
-        vectors[0],
-        vectors[1]
+        [resume_embedding],
+        [jd_embedding]
     )[0][0]
 
     return round(similarity * 100, 2)
 
 
-# -------------------------------
-# Extract Keywords
-# -------------------------------
+# ----------------------------
+# Keyword Extraction
+# ----------------------------
 
 def extract_keywords(text):
 
     words = text.split()
 
-    keywords = []
+    words = [w for w in words if len(w) > 3]
 
-    for word in words:
-
-        if len(word) > 3:
-            keywords.append(word)
-
-    return sorted(list(set(keywords)))
-
+    return sorted(list(set(words)))
