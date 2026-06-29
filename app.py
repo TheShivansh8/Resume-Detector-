@@ -1,5 +1,5 @@
 import streamlit as st
-from utils import (
+from util import (
     extract_pdf_text,
     clean_text,
     load_skills,
