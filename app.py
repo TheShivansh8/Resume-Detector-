@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 from util import (
     extract_pdf_text,
