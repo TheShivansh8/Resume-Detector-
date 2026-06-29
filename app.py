@@ -8,28 +8,34 @@ from util import (
 )
 
 st.set_page_config(
-    page_title="Resume Screening AI",
-    page_icon="📄",
+    page_title="AI Resume Analyzer",
+    page_icon="🤖",
     layout="wide"
 )
+
+# -----------------------
+# Custom CSS
+# -----------------------
 
 st.markdown("""
 <style>
 
 .stApp{
-    background:linear-gradient(135deg,#0f172a,#1e293b,#111827);
+    background: linear-gradient(135deg,#0f172a,#111827,#1f2937);
     color:white;
 }
 
-.block-container{
-    padding-top:2rem;
+h1,h2,h3{
+    color:white;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-st.title("📄 Resume Screening AI")
-st.write("Compare your Resume with a Job Description using NLP.")
+st.title("🤖 AI Resume Analyzer")
+st.write(
+    "Compare your Resume with a Job Description using Semantic AI."
+)
 
 uploaded_resume = st.file_uploader(
     "Upload Resume (PDF)",
@@ -47,9 +53,11 @@ if st.button("Analyze Resume"):
         st.error("Please upload a Resume.")
         st.stop()
 
-    if job_description.strip() == "":
+    if not job_description.strip():
         st.error("Please enter a Job Description.")
         st.stop()
+
+    # -----------------------
 
     resume_text = extract_pdf_text(uploaded_resume)
 
@@ -61,8 +69,13 @@ if st.button("Analyze Resume"):
         cleaned_jd
     )
 
-    resume_keywords = set(extract_keywords(cleaned_resume))
-    jd_keywords = set(extract_keywords(cleaned_jd))
+    resume_keywords = set(
+        extract_keywords(cleaned_resume)
+    )
+
+    jd_keywords = set(
+        extract_keywords(cleaned_jd)
+    )
 
     matched = sorted(
         resume_keywords.intersection(jd_keywords)
@@ -72,7 +85,9 @@ if st.button("Analyze Resume"):
         jd_keywords - resume_keywords
     )
 
-    st.success("Analysis Complete")
+    # -----------------------
+
+    st.success("Analysis Completed")
 
     col1, col2 = st.columns(2)
 
@@ -106,11 +121,12 @@ if st.button("Analyze Resume"):
 
         if matched:
 
-            for word in matched[:25]:
+            for word in matched[:20]:
                 st.success(word.title())
 
         else:
-            st.info("No common keywords found.")
+
+            st.info("No matching keywords found.")
 
     with col2:
 
@@ -118,33 +134,38 @@ if st.button("Analyze Resume"):
 
         if missing:
 
-            for word in missing[:25]:
+            for word in missing[:20]:
                 st.error(word.title())
 
         else:
+
             st.success("No missing keywords.")
 
     st.divider()
 
-    st.subheader("📋 Recommendation")
+    st.subheader("📋 AI Recommendation")
 
     if score >= 85:
+
         st.success(
-            "Your resume is strongly aligned with the job description."
+            "Your resume is highly aligned with the job description."
         )
 
     elif score >= 70:
+
         st.info(
-            "Your resume is a good match. Consider adding the missing skills."
+            "Good match. Improve the missing skills to increase compatibility."
         )
 
     elif score >= 50:
+
         st.warning(
-            "Your resume requires improvements before applying."
+            "Your resume needs additional improvements before applying."
         )
 
     else:
+
         st.error(
-            "Your resume does not match the job requirements."
+            "Your resume does not sufficiently match the job description."
         )
 
