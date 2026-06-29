@@ -4,3 +4,9 @@ scikit-learn
 pdfplumber
 nltk
 joblib
+streamlit
+sentence-transformers
+torch
+pymupdf
+scikit-learn
+numpy
