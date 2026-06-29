@@ -33,9 +33,7 @@ h1,h2,h3{
 """, unsafe_allow_html=True)
 
 st.title("🤖 AI Resume Analyzer")
-st.write(
-    "Compare your Resume with a Job Description using Semantic AI."
-)
+st.write("Compare your Resume with a Job Description using Semantic AI.")
 
 uploaded_resume = st.file_uploader(
     "Upload Resume (PDF)",
@@ -58,6 +56,8 @@ if st.button("Analyze Resume"):
         st.stop()
 
     # -----------------------
+    # Extract Resume
+    # -----------------------
 
     resume_text = extract_pdf_text(uploaded_resume)
 
@@ -68,6 +68,12 @@ if st.button("Analyze Resume"):
         cleaned_resume,
         cleaned_jd
     )
+
+    score = float(score)
+
+    # -----------------------
+    # Keyword Comparison
+    # -----------------------
 
     resume_keywords = set(
         extract_keywords(cleaned_resume)
@@ -86,30 +92,40 @@ if st.button("Analyze Resume"):
     )
 
     # -----------------------
+    # Results
+    # -----------------------
 
-    st.success("Analysis Completed")
+    st.success("Analysis Completed Successfully!")
 
     col1, col2 = st.columns(2)
 
     with col1:
 
         st.metric(
-            "Resume Match",
-            f"{score}%"
+            label="Resume Match",
+            value=f"{score:.2f}%"
         )
 
-        st.progress(score / 100)
+        progress_value = max(
+            0.0,
+            min(1.0, score / 100.0)
+        )
+
+        st.progress(progress_value)
 
     with col2:
 
         if score >= 85:
-            st.success("Excellent Match")
+            st.success("Excellent Match ⭐")
+
         elif score >= 70:
-            st.info("Good Match")
+            st.info("Good Match 👍")
+
         elif score >= 50:
-            st.warning("Average Match")
+            st.warning("Average Match ⚠")
+
         else:
-            st.error("Low Match")
+            st.error("Low Match ❌")
 
     st.divider()
 
@@ -121,8 +137,8 @@ if st.button("Analyze Resume"):
 
         if matched:
 
-            for word in matched[:20]:
-                st.success(word.title())
+            for word in matched[:25]:
+                st.write(f"✅ {word.title()}")
 
         else:
 
@@ -134,8 +150,8 @@ if st.button("Analyze Resume"):
 
         if missing:
 
-            for word in missing[:20]:
-                st.error(word.title())
+            for word in missing[:25]:
+                st.write(f"❌ {word.title()}")
 
         else:
 
@@ -147,25 +163,35 @@ if st.button("Analyze Resume"):
 
     if score >= 85:
 
-        st.success(
-            "Your resume is highly aligned with the job description."
-        )
+        st.success("""
+Your resume is highly aligned with this Job Description.
+
+You are a strong candidate based on semantic similarity.
+        """)
 
     elif score >= 70:
 
-        st.info(
-            "Good match. Improve the missing skills to increase compatibility."
-        )
+        st.info("""
+Good overall match.
+
+Improve the missing skills and tailor your resume before applying.
+        """)
 
     elif score >= 50:
 
-        st.warning(
-            "Your resume needs additional improvements before applying."
-        )
+        st.warning("""
+Average match.
+
+Consider adding more relevant projects, technical skills,
+and keywords from the Job Description.
+        """)
 
     else:
 
-        st.error(
-            "Your resume does not sufficiently match the job description."
-        )
+        st.error("""
+Low match.
+
+Your resume does not align well with the Job Description.
+Consider rewriting your resume for this specific role.
+        """)
 
