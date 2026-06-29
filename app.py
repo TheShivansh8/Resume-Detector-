@@ -1,13 +1,11 @@
+```python
 import streamlit as st
+
 from util import (
     extract_pdf_text,
     clean_text,
     calculate_match_score,
-    extract_name,
-    extract_email,
-    extract_phone,
-    extract_linkedin,
-    extract_github
+    extract_keywords
 )
 
 st.set_page_config(
@@ -16,41 +14,26 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------- Custom CSS ----------
-
 st.markdown("""
 <style>
 
 .stApp{
-background: linear-gradient(135deg,#0f172a,#1e293b,#111827);
-color:white;
+    background:linear-gradient(135deg,#0f172a,#1e293b,#111827);
+    color:white;
 }
 
 .block-container{
-padding-top:2rem;
-padding-bottom:2rem;
-}
-
-.card{
-background:#1f2937;
-padding:20px;
-border-radius:15px;
-border:1px solid #374151;
-box-shadow:0px 0px 15px rgba(0,0,0,0.25);
-}
-
-h1,h2,h3{
-color:white;
+    padding-top:2rem;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 st.title("📄 Resume Screening AI")
-st.write("Upload your resume and compare it with a Job Description.")
+st.write("Compare your Resume with a Job Description using NLP.")
 
 uploaded_resume = st.file_uploader(
-    "Upload Resume",
+    "Upload Resume (PDF)",
     type=["pdf"]
 )
 
@@ -62,68 +45,107 @@ job_description = st.text_area(
 if st.button("Analyze Resume"):
 
     if uploaded_resume is None:
-        st.error("Please upload a resume.")
+        st.error("Please upload a Resume.")
         st.stop()
 
-    if not job_description.strip():
+    if job_description.strip() == "":
         st.error("Please enter a Job Description.")
         st.stop()
 
     resume_text = extract_pdf_text(uploaded_resume)
 
-    name = extract_name(resume_text)
-    email = extract_email(resume_text)
-    phone = extract_phone(resume_text)
-    linkedin = extract_linkedin(resume_text)
-    github = extract_github(resume_text)
-
     cleaned_resume = clean_text(resume_text)
     cleaned_jd = clean_text(job_description)
 
-    score = calculate_match_score(cleaned_resume, cleaned_jd)
+    score = calculate_match_score(
+        cleaned_resume,
+        cleaned_jd
+    )
+
+    resume_keywords = set(extract_keywords(cleaned_resume))
+    jd_keywords = set(extract_keywords(cleaned_jd))
+
+    matched = sorted(
+        resume_keywords.intersection(jd_keywords)
+    )
+
+    missing = sorted(
+        jd_keywords - resume_keywords
+    )
 
     st.success("Analysis Complete")
 
-    col1, col2 = st.columns([1,1])
+    col1, col2 = st.columns(2)
 
     with col1:
 
-        st.markdown("### 👤 Candidate Information")
+        st.metric(
+            "Resume Match",
+            f"{score}%"
+        )
 
-        st.info(f"""
-**Name:** {name}
-
-**Email:** {email}
-
-**Phone:** {phone}
-
-**LinkedIn:** {linkedin}
-
-**GitHub:** {github}
-""")
+        st.progress(score / 100)
 
     with col2:
 
-        st.markdown("### 🎯 Resume Match")
-
-        st.metric(
-            label="Match Score",
-            value=f"{score}%"
-        )
-
-        st.progress(min(score/100,1.0))
+        if score >= 85:
+            st.success("Excellent Match")
+        elif score >= 70:
+            st.info("Good Match")
+        elif score >= 50:
+            st.warning("Average Match")
+        else:
+            st.error("Low Match")
 
     st.divider()
 
-    st.markdown("### 📋 Recommendation")
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        st.subheader("✅ Matched Keywords")
+
+        if matched:
+
+            for word in matched[:25]:
+                st.success(word.title())
+
+        else:
+            st.info("No common keywords found.")
+
+    with col2:
+
+        st.subheader("❌ Missing Keywords")
+
+        if missing:
+
+            for word in missing[:25]:
+                st.error(word.title())
+
+        else:
+            st.success("No missing keywords.")
+
+    st.divider()
+
+    st.subheader("📋 Recommendation")
 
     if score >= 85:
-        st.success("Excellent match. Your resume strongly aligns with the job description.")
+        st.success(
+            "Your resume is strongly aligned with the job description."
+        )
+
     elif score >= 70:
-        st.info("Good match. A few improvements can make your profile stronger.")
+        st.info(
+            "Your resume is a good match. Consider adding the missing skills."
+        )
+
     elif score >= 50:
-        st.warning("Average match. Tailor your resume to the job description.")
+        st.warning(
+            "Your resume requires improvements before applying."
+        )
+
     else:
-        st.error("Low match. Consider revising your resume before applying.")
-
-
+        st.error(
+            "Your resume does not match the job requirements."
+        )
+```
