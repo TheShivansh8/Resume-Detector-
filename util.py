@@ -1,4 +1,3 @@
-```python
 import re
 import fitz
 import streamlit as st
@@ -138,4 +137,4 @@ def extract_keywords(text):
             keywords.append(word)
 
     return sorted(set(keywords))
-```
+
