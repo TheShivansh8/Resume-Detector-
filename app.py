@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 
 from util import (
@@ -148,4 +147,4 @@ if st.button("Analyze Resume"):
         st.error(
             "Your resume does not match the job requirements."
         )
-```
+
