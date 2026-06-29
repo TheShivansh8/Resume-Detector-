@@ -8,15 +8,18 @@ from sklearn.feature_extraction.text import (
 from sklearn.metrics.pairwise import cosine_similarity
 
 
-# ==========================
-# PDF Extraction
-# ==========================
+# -------------------------------
+# Extract text from PDF
+# -------------------------------
 
 def extract_pdf_text(pdf_file):
+
     text = ""
 
     with pdfplumber.open(pdf_file) as pdf:
+
         for page in pdf.pages:
+
             page_text = page.extract_text()
 
             if page_text:
@@ -25,11 +28,12 @@ def extract_pdf_text(pdf_file):
     return text
 
 
-# ==========================
-# Text Cleaning
-# ==========================
+# -------------------------------
+# Clean Text
+# -------------------------------
 
 def clean_text(text):
+
     text = text.lower()
 
     text = re.sub(r'[^a-zA-Z0-9\s]', ' ', text)
@@ -45,9 +49,9 @@ def clean_text(text):
     return " ".join(words)
 
 
-# ==========================
-# Match Score
-# ==========================
+# -------------------------------
+# TF-IDF Similarity
+# -------------------------------
 
 def calculate_match_score(resume_text, jd_text):
 
@@ -65,67 +69,20 @@ def calculate_match_score(resume_text, jd_text):
     return round(similarity * 100, 2)
 
 
-# ==========================
-# Resume Information
-# ==========================
+# -------------------------------
+# Extract Keywords
+# -------------------------------
 
-def extract_email(text):
+def extract_keywords(text):
 
-    pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+    words = text.split()
 
-    match = re.search(pattern, text)
+    keywords = []
 
-    if match:
-        return match.group()
+    for word in words:
 
-    return "Not Found"
+        if len(word) > 3:
+            keywords.append(word)
 
+    return sorted(list(set(keywords)))
 
-def extract_phone(text):
-
-    pattern = r'(\+91[\s-]?)?[6-9]\d{9}'
-
-    match = re.search(pattern, text)
-
-    if match:
-        return match.group()
-
-    return "Not Found"
-
-
-def extract_linkedin(text):
-
-    pattern = r'(https?://)?(www\.)?linkedin\.com/in/[A-Za-z0-9_-]+'
-
-    match = re.search(pattern, text)
-
-    if match:
-        return match.group()
-
-    return "Not Found"
-
-
-def extract_github(text):
-
-    pattern = r'(https?://)?(www\.)?github\.com/[A-Za-z0-9_-]+'
-
-    match = re.search(pattern, text)
-
-    if match:
-        return match.group()
-
-    return "Not Found"
-
-
-def extract_name(text):
-
-    lines = text.split("\n")
-
-    for line in lines:
-
-        line = line.strip()
-
-        if 2 <= len(line.split()) <= 4:
-            return line
-
-    return "Not Found"
